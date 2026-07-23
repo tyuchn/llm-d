@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: decode
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: fix-lustre-permissions
+          image: busybox:latest
+          command: ["sh", "-c", "chmod -R g+w /mnt/files-storage/"]
+          volumeMounts:
+            - name: files-storage
+              mountPath: /mnt/files-storage
+      containers:
+        - name: modelserver
+          args:
+            - "--hicache-io-backend"
+            - "kernel"
+            - "--hicache-storage-backend"
+            - "file"
+            - "--hicache-storage-prefetch-policy"
+            - "wait_complete"
+          env:
+            - name: SGLANG_HICACHE_FILE_BACKEND_STORAGE_DIR
+              value: "/mnt/files-storage"
+            - name: SGLANG_HICACHE_FILE_BACKEND_ENABLE_METADATA_CACHE
+              value: "true"
+            - name: SGLANG_HICACHE_FILE_BACKEND_METADATA_TTL
+              value: "5.0"
+            - name: PYTHONHASHSEED
+              value: "42"
+          volumeMounts:
+            - name: files-storage
+              mountPath: /mnt/files-storage
+      volumes:
+        - name: files-storage
+          persistentVolumeClaim:
+            claimName: preprov-pvc
