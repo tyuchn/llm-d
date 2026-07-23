@@ -50,6 +50,7 @@ This guide includes configurations for the following accelerators:
 | Backend               | Directory                                   | Notes                                      |
 | --------------------- | ------------------------------------------- | ------------------------------------------ |
 | NVIDIA GPU (GKE)      | `modelserver/gpu/vllm/gke/`                 | GKE deployment (H200)                      |
+| NVIDIA GPU (SGLang)   | `modelserver/gpu/sglang/gke/`               | GKE LWS multi-host deployment (H200/B200)  |
 | NVIDIA GPU (GKE A4)   | `modelserver/gpu/vllm/topology-aware/gke-a4/` | GKE deployment (B200)                    |
 | NVIDIA GPU (CoreWeave)| `modelserver/gpu/vllm/coreweave/`           | CoreWeave deployment                       |
 | NVIDIA GPU (GB200)    | `modelserver/gpu/vllm/dgx-cloud-gb200/`     | DGX Cloud GB200 deployment                 |
@@ -153,9 +154,12 @@ For Intel XPU, include
 Apply the Kustomize overlays for your specific backend:
 
 ```bash
-# NVIDIA GPU
+# NVIDIA GPU (vLLM)
 export INFRA_PROVIDER=gke # options: gke, coreweave, dgx-cloud-gb200
 kubectl apply -n ${NAMESPACE} -k ${REPO_ROOT}/guides/${GUIDE_NAME}/modelserver/gpu/vllm/${INFRA_PROVIDER}
+
+# NVIDIA GPU (SGLang)
+kubectl apply -n ${NAMESPACE} -k ${REPO_ROOT}/guides/${GUIDE_NAME}/modelserver/gpu/sglang/gke
 
 # Intel XPU
 export MODEL=deepseek-ai/DeepSeek-V2-Lite-Chat
@@ -249,8 +253,10 @@ To remove the deployed components:
 helm uninstall ${GUIDE_NAME} -n ${NAMESPACE}
 # If you enabled monitoring (Step 3), remove the monitoring overlay first.
 kubectl delete -n ${NAMESPACE} -k ${REPO_ROOT}/guides/${GUIDE_NAME}/monitoring
-# NVIDIA GPU
+# NVIDIA GPU (vLLM)
 kubectl delete -n ${NAMESPACE} -k ${REPO_ROOT}/guides/${GUIDE_NAME}/modelserver/gpu/vllm/${INFRA_PROVIDER}
+# NVIDIA GPU (SGLang)
+kubectl delete -n ${NAMESPACE} -k ${REPO_ROOT}/guides/${GUIDE_NAME}/modelserver/gpu/sglang/gke
 # Intel XPU
 kubectl delete -n ${NAMESPACE} -k ${REPO_ROOT}/guides/${GUIDE_NAME}/modelserver/xpu/vllm
 ```
